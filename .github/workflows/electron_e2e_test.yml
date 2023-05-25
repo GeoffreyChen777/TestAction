@@ -93,6 +93,7 @@ jobs:
       - name: "End-to-End Testing"
         run: npm run test:e2e
 
+
   e2e_test_win:
     runs-on: windows-latest
 
@@ -116,16 +117,12 @@ jobs:
           token: ${{ secrets.CRYPTO_REPO_KEY }}
           path: ./app/utils/crypto
 
-      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node-versions }}
-
-      - name: "Install Node Module"
+      - name: "Cleanup Env"
         run: |
-          node -v
-          npm install --force
-          npx playwright install --with-deps
+          ls "C:\Users\"
+          if (Test-Path ./app/utils/crypto) {rm ./app/utils/crypto -r -force}
+          if (Test-Path C:\Users\runneradmin\AppData\Local\paperlib) {rm C:\Users\runneradmin\AppData\Local\paperlib -r -force}
+
 
       - name: "Cleanup Env"
         run: |
@@ -134,4 +131,5 @@ jobs:
 
       - name: "End-to-End Testing"
         run: npm run test:e2e
+
 

@@ -129,6 +129,7 @@ jobs:
 
       - name: "Cleanup Env"
         run: |
+          whoami
           ls "C:\Users\"
           rm ./app/utils/crypto -r -force
 

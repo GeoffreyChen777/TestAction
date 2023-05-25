@@ -129,7 +129,6 @@ jobs:
 
       - name: "Cleanup Env"
         run: |
-          whoami
           ls "C:\Users\"
           if (Test-Path ./app/utils/crypto) {rm ./app/utils/crypto -r -force}
           if (Test-Path C:\Users\runneradmin\AppData\Local\paperlib) {rm C:\Users\runneradmin\AppData\Local\paperlib -r -force}

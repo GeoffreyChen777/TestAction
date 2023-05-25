@@ -132,6 +132,7 @@ jobs:
           whoami
           ls "C:\Users\"
           if (Test-Path ./app/utils/crypto) {rm ./app/utils/crypto -r -force}
+          ls "C:\Users\runneradmin\AppData\Local\paperlib"
 
       # - name: "End-to-End Testing"
       #   run: npm run test:e2e

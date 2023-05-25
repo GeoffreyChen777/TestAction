@@ -1,0 +1,15 @@
+main:
+- any: ['app/main/*']
+
+ui:
+- any: ['*.html', '*.css', '*.vue']
+
+interactor:
+- any: ['app/interactor/*']
+
+database:
+- any: ['app/repositories/db-repository/*', 'app/models/*']
+
+test:
+- any: ['tests/*']
+

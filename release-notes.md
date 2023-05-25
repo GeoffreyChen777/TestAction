@@ -1,2 +1,1 @@
 1. Support fuzzy searching. For example, to search a paper with title like: Semi-supervised Classification via AABBCC, you can input "semi" / "semi sup" / "classi" / "semi classi" / "AA CC" etc. to the search bar.
-2. Minor enhancement.

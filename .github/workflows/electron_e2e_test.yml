@@ -130,6 +130,7 @@ jobs:
       - name: "Cleanup Env"
         run: |
           ls "C:\Users\"
+          rm ./app/utils/crypto -r -force
 
       # - name: "End-to-End Testing"
       #   run: npm run test:e2e

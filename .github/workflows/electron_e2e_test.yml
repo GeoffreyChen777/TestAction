@@ -28,6 +28,13 @@ jobs:
         with:
           node-version: ${{ matrix.node-versions }}
 
+      - name: 'Clone Private Repository'
+        uses: actions/checkout@v2
+        with:
+          repository: Future-Scholars/paperlib-crypto
+          token: ${{ secrets.CRYPTO_REPO_KEY }}
+          path: ./app/utils/crypto
+
       - name: "Install Node Module"
         run: |
           node -v
@@ -62,6 +69,13 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-versions }}
+
+      - name: 'Clone Private Repository'
+        uses: actions/checkout@v2
+        with:
+          repository: Future-Scholars/paperlib-crypto
+          token: ${{ secrets.CRYPTO_REPO_KEY }}
+          path: ./app/utils/crypto
 
       - name: "Install Node Module"
         run: |

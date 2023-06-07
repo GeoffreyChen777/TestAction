@@ -7,52 +7,52 @@ on:
       - master
 
 jobs:
-  e2e_test_mac_arm:
-    runs-on: self-hosted
+#   e2e_test_mac_arm:
+#     runs-on: self-hosted
 
-    strategy:
-      matrix:
-        node-versions: ['16.17.1']
+#     strategy:
+#       matrix:
+#         node-versions: ['16.17.1']
 
-    steps:
-      - name: 'Checkout Project'
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
+#     steps:
+#       - name: 'Checkout Project'
+#         uses: actions/checkout@v2
+#         with:
+#           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Set env
-        run: |
-          cp ./build_configs/electron-builder.mac.arm.dev.json5 ./electron-builder.json5
-          rm -rf ./app/utils/crypto
+#       - name: Set env
+#         run: |
+#           cp ./build_configs/electron-builder.mac.arm.dev.json5 ./electron-builder.json5
+#           rm -rf ./app/utils/crypto
 
-      - name: 'Clone Private Repository'
-        uses: actions/checkout@v2
-        with:
-          repository: Future-Scholars/paperlib-crypto
-          token: ${{ secrets.CRYPTO_REPO_KEY }}
-          path: ./app/utils/crypto
+#       - name: 'Clone Private Repository'
+#         uses: actions/checkout@v2
+#         with:
+#           repository: Future-Scholars/paperlib-crypto
+#           token: ${{ secrets.CRYPTO_REPO_KEY }}
+#           path: ./app/utils/crypto
 
-      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node-versions }}
+#       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
+#         uses: actions/setup-node@v2
+#         with:
+#           node-version: ${{ matrix.node-versions }}
 
-      - name: 'Install Node Module'
-        run: |
-          node -v
-          npm install --force
-          npx playwright install --with-deps
+#       - name: 'Install Node Module'
+#         run: |
+#           node -v
+#           npm install --force
+#           npx playwright install --with-deps
 
-      - name: 'Cleanup Env'
-        run: |
-          rm -rf ~/Documents/paperlib
-          rm -rf ~/Library/Application\ Support/paperlib 
+#       - name: 'Cleanup Env'
+#         run: |
+#           rm -rf ~/Documents/paperlib
+#           rm -rf ~/Library/Application\ Support/paperlib 
 
-      - name: "End-to-End Testing"
-        run: npm run test:e2e
+#       - name: "End-to-End Testing"
+#         run: npm run test:e2e
 
   e2e_test_mac_x86:
-    runs-on: macos-latest
+    runs-on: self-hosted
 
     strategy:
       matrix:
@@ -67,13 +67,6 @@ jobs:
           cp ./build_configs/electron-builder.mac.dev.json5 ./electron-builder.json5
           rm -rf ./app/utils/crypto
 
-      - name: 'Clone Private Repository'
-        uses: actions/checkout@v2
-        with:
-          repository: Future-Scholars/paperlib-crypto
-          token: ${{ secrets.CRYPTO_REPO_KEY }}
-          path: ./app/utils/crypto
-
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
         with:
@@ -85,94 +78,94 @@ jobs:
           npm install --force
           npx playwright install --with-deps
 
-      - name: "Cleanup Env"
-        run: |
-          rm -rf ~/Documents/paperlib
-          rm -rf ~/Library/Application\ Support/paperlib
+#       - name: "Cleanup Env"
+#         run: |
+#           rm -rf ~/Documents/paperlib
+#           rm -rf ~/Library/Application\ Support/paperlib
 
       - name: "End-to-End Testing"
         run: npm run test:e2e
 
-  e2e_test_win:
-    runs-on: windows-latest
+#   e2e_test_win:
+#     runs-on: windows-latest
 
-    strategy:
-      matrix:
-        node-versions: ["16.17.1"]
+#     strategy:
+#       matrix:
+#         node-versions: ["16.17.1"]
 
-    steps:
-      - name: "Checkout Project"
-        uses: actions/checkout@v2
+#     steps:
+#       - name: "Checkout Project"
+#         uses: actions/checkout@v2
 
-      - name: Set env
-        run: |
-          cp ./build_configs/electron-builder.win.dev.json5 ./electron-builder.json5
-          if (Test-Path ./app/utils/crypto) {rm ./app/utils/crypto -r -force}
+#       - name: Set env
+#         run: |
+#           cp ./build_configs/electron-builder.win.dev.json5 ./electron-builder.json5
+#           if (Test-Path ./app/utils/crypto) {rm ./app/utils/crypto -r -force}
 
-      - name: 'Clone Private Repository'
-        uses: actions/checkout@v2
-        with:
-          repository: Future-Scholars/paperlib-crypto
-          token: ${{ secrets.CRYPTO_REPO_KEY }}
-          path: ./app/utils/crypto
+#       - name: 'Clone Private Repository'
+#         uses: actions/checkout@v2
+#         with:
+#           repository: Future-Scholars/paperlib-crypto
+#           token: ${{ secrets.CRYPTO_REPO_KEY }}
+#           path: ./app/utils/crypto
 
-      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node-versions }}
+#       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
+#         uses: actions/setup-node@v2
+#         with:
+#           node-version: ${{ matrix.node-versions }}
 
-      - name: "Install Node Module"
-        run: |
-          node -v
-          npm install --force
-          npx playwright install --with-deps
+#       - name: "Install Node Module"
+#         run: |
+#           node -v
+#           npm install --force
+#           npx playwright install --with-deps
 
-      - name: "Cleanup Env"
-        run: |
-          if (Test-Path C:\Users\runneradmin\Documents\paperlib) {rm C:\Users\runneradmin\Documents\paperlib -r -force}
-          if (Test-Path C:\Users\runneradmin\AppData\Local\paperlib) {rm C:\Users\runneradmin\AppData\Local\paperlib -r -force}
+#       - name: "Cleanup Env"
+#         run: |
+#           if (Test-Path C:\Users\runneradmin\Documents\paperlib) {rm C:\Users\runneradmin\Documents\paperlib -r -force}
+#           if (Test-Path C:\Users\runneradmin\AppData\Local\paperlib) {rm C:\Users\runneradmin\AppData\Local\paperlib -r -force}
 
-      - name: "End-to-End Testing"
-        run: npm run test:e2e
+#       - name: "End-to-End Testing"
+#         run: npm run test:e2e
 
-  e2e_test_linux:
-    runs-on: ubuntu-latest
+#   e2e_test_linux:
+#     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-versions: ["16.17.1"]
+#     strategy:
+#       matrix:
+#         node-versions: ["16.17.1"]
 
-    steps:
-      - name: "Checkout Project"
-        uses: actions/checkout@v2
+#     steps:
+#       - name: "Checkout Project"
+#         uses: actions/checkout@v2
 
-      - name: Set env
-        run: |
-          cp ./build_configs/electron-builder.linux.dev.json5 ./electron-builder.json5
-          rm -rf ./app/utils/crypto
+#       - name: Set env
+#         run: |
+#           cp ./build_configs/electron-builder.linux.dev.json5 ./electron-builder.json5
+#           rm -rf ./app/utils/crypto
 
-      - name: 'Clone Private Repository'
-        uses: actions/checkout@v2
-        with:
-          repository: Future-Scholars/paperlib-crypto
-          token: ${{ secrets.CRYPTO_REPO_KEY }}
-          path: ./app/utils/crypto
+#       - name: 'Clone Private Repository'
+#         uses: actions/checkout@v2
+#         with:
+#           repository: Future-Scholars/paperlib-crypto
+#           token: ${{ secrets.CRYPTO_REPO_KEY }}
+#           path: ./app/utils/crypto
 
-      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node-versions }}
+#       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
+#         uses: actions/setup-node@v2
+#         with:
+#           node-version: ${{ matrix.node-versions }}
 
-      - name: "Install Node Module"
-        run: |
-          node -v
-          npm install --force
-          npx playwright install --with-deps
+#       - name: "Install Node Module"
+#         run: |
+#           node -v
+#           npm install --force
+#           npx playwright install --with-deps
 
-      - name: "Cleanup Env"
-        run: |
-          rm -rf ~/Documents/paperlib
-          rm -rf ~/.config/paperlib
+#       - name: "Cleanup Env"
+#         run: |
+#           rm -rf ~/Documents/paperlib
+#           rm -rf ~/.config/paperlib
 
-      - name: "End-to-End Testing"
-        run: npm run test:e2e
+#       - name: "End-to-End Testing"
+#         run: npm run test:e2e

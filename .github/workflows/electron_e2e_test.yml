@@ -40,6 +40,7 @@ jobs:
           node -v
           npm install --force
           npx playwright install --with-deps
+          npm install screenshot-desktop
 
       - name: "Cleanup Env"
         run: |
@@ -48,6 +49,17 @@ jobs:
 
       - name: "End-to-End Testing"
         run: npm run test:e2e-dev
+
+      - name: "Update Screenshots"
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./loading.jpg
+            ./presetting.jpg
+            ./rating.jpg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
   e2e_test_linux:
     runs-on: ubuntu-latest

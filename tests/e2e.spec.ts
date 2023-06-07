@@ -44,6 +44,8 @@ test("Main Window State", async () => {
 }, 100000);
 
 test("Loading Removed in 10s", async () => {
+  const screenshot = require("screenshot-desktop");
+  await screenshot({ filename: "./loading.jpg" });
   await page.waitForSelector("#app-loading-wrap", { state: "hidden" });
 }, 100000);
 
@@ -55,6 +57,8 @@ test("Try to Close Whats New", async () => {
 }, 100000);
 
 test("Presetting", async () => {
+  const screenshot = require("screenshot-desktop");
+  await screenshot({ filename: "./presetting.jpg" });
   await page.waitForSelector("#presetting-lang-view", { state: "visible" });
   await page.waitForSelector("#presetting-lang-continue-btn", {
     state: "visible",
@@ -102,6 +106,8 @@ test("Drag PDF to Import", async () => {
 }, 100000);
 
 test("Rating Paper", async () => {
+  const screenshot = require("screenshot-desktop");
+  await screenshot({ filename: "./rating.jpg" });
   const dataview = page.locator("#list-data-view").first();
   const paperItem = dataview.locator("div").first();
   await paperItem.click({ force: true });

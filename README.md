@@ -24,7 +24,7 @@ Join our <a href="https://discord.gg/4unrSRjcM9">Discord community</a>!
 
 📣 **I'm looking for someone to work with me on developing Paperlib.** 📣
 
- If you are interested please contact me. 
+ If you are interested please contact me.
 
 ## Introduction
 

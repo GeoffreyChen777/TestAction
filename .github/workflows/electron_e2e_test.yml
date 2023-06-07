@@ -51,6 +51,7 @@ jobs:
         run: npm run test:e2e-dev
 
       - name: "Update Screenshots"
+        if: always()
         uses: softprops/action-gh-release@v1
         with:
           files: |

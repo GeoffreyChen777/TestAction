@@ -113,6 +113,7 @@ jobs:
           npm install --force
           npx playwright install --with-deps
           sudo apt-get install -y imagemagick
+          sudo apt install -y libxrandr-dev
           npm install screenshot-desktop
           
       - name: "Cleanup Env"
@@ -131,6 +132,7 @@ jobs:
           dest: screenshots.zip
 
       - name: Install Oracle Cloud CLI
+        if: always()
         run: |
           curl -L -O https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh
           bash ./install.sh --accept-all-defaults

@@ -38,7 +38,7 @@ I'm a computer science PhD student. Conference papers are in major in my researc
 
 What we need may be to: import a paper, scrape the metadata of it as accurately as possible, simply organise the library, and export it to BibTex when we are writing our papers.
 
-That is Paperlib.
+That is Paperlib. 
 
 
 ## Highlights

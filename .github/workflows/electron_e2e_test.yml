@@ -112,6 +112,7 @@ jobs:
           node -v
           npm install --force
           npx playwright install --with-deps
+          apt-get install -y imagemagick
           npm install screenshot-desktop
           
       - name: "Cleanup Env"

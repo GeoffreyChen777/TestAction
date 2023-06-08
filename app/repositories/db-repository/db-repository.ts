@@ -172,7 +172,17 @@ export class DBRepository {
   }
 
   async getConfig(): Promise<Realm.Configuration> {
-    const syncPassword = await window.appInteractor.getPassword("realmSync");
+    let syncPassword;
+    try{
+      syncPassword = await window.appInteractor.getPassword("realmSync");
+    } catch (e) {
+      window.logger.warn(
+          "Failed to read password",
+          "",
+          true,
+          "Database"
+      );
+    }
     if (
       window.appInteractor.getPreference("useSync") &&
       window.appInteractor.getPreference("syncEmail") !== "" &&
@@ -182,7 +192,7 @@ export class DBRepository {
     } else {
       this.cloudConfig = undefined;
       return await this.getLocalConfig();
-    }
+    } 
   }
 
   async getLocalConfig(logout = true): Promise<Realm.Configuration> {

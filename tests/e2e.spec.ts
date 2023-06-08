@@ -18,11 +18,13 @@ function testAndScreenshot(
         filename: `./screenshots/${screenshotName}-before.jpg`,
       });
 
-      await callback();
-
-      await screenshot({
-        filename: `./screenshots/${screenshotName}-after.jpg`,
-      });
+      try {
+        await callback();
+      } finally {
+        await screenshot({
+          filename: `./screenshots/${screenshotName}-after.jpg`,
+        });
+      }
     },
     100000
   );

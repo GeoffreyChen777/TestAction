@@ -5,10 +5,41 @@ import { afterAll, beforeAll, expect, test } from "vitest";
 let electronApp: ElectronApplication;
 let page: Page;
 
+function testAndScreenshot(
+  name: string,
+  screenshotName: string,
+  callback: () => Promise<void>
+) {
+  test(
+    name,
+    async () => {
+      const screenshot = require("screenshot-desktop");
+      await screenshot({
+        filename: `./screenshots/${screenshotName}-before.jpg`,
+      });
+
+      await callback();
+
+      await screenshot({
+        filename: `./screenshots/${screenshotName}-after.jpg`,
+      });
+    },
+    100000
+  );
+}
+
 beforeAll(async () => {
   process.env.NODE_ENV = "vitest";
   electronApp = await electron.launch({ args: ["."] });
   page = await electronApp.firstWindow();
+
+  const fs = require("fs");
+  if (!fs.existsSync("./screenshots")) {
+    fs.mkdirSync("./screenshots");
+  }
+
+  const screenshot = require("screenshot-desktop");
+  await screenshot({ filename: "./screenshots/launch.jpg" });
 }, 200000);
 
 afterAll(async () => {
@@ -43,22 +74,18 @@ test("Main Window State", async () => {
   expect(windowState.isVisible, "The main window was not visible").toBeTruthy();
 }, 100000);
 
-test("Loading Removed in 10s", async () => {
-  const screenshot = require("screenshot-desktop");
-  await screenshot({ filename: "./loading.jpg" });
+testAndScreenshot("Loading Removed in 10s", "loading", async () => {
   await page.waitForSelector("#app-loading-wrap", { state: "hidden" });
-}, 100000);
+});
 
-test("Try to Close Whats New", async () => {
+testAndScreenshot("Try to Close Whats New", "whatsnew", async () => {
   if (await page.isVisible("#whats-new-view")) {
     await page.locator("#whats-new-close-btn").click({ force: true });
     await page.waitForSelector("#whats-new-view", { state: "detached" });
   }
-}, 100000);
+});
 
-test("Presetting", async () => {
-  const screenshot = require("screenshot-desktop");
-  await screenshot({ filename: "./presetting.jpg" });
+testAndScreenshot("Presetting", "presetting", async () => {
   await page.waitForSelector("#presetting-lang-view", { state: "visible" });
   await page.waitForSelector("#presetting-lang-continue-btn", {
     state: "visible",
@@ -81,9 +108,14 @@ test("Presetting", async () => {
   await scrapersSelect.selectOption({ label: "Computer Science" });
   await page.locator("#presetting-scraper-continue-btn").click({ force: true });
   await page.waitForSelector("#presetting-scraper-view", { state: "detached" });
-}, 300000);
+});
 
-test("Drag PDF to Import", async () => {
+testAndScreenshot("Maximize Window", "maximize", async () => {
+  await page.locator("#window-maximize-btn").click({ force: true });
+  await page.waitForTimeout(1000);
+});
+
+testAndScreenshot("Drag PDF to Import", "draf", async () => {
   const e = await page.locator("#dev-btn-bar").elementHandle();
   await e?.evaluate((e) => {
     e.style.display = "flex";
@@ -103,11 +135,9 @@ test("Drag PDF to Import", async () => {
     "|\n" +
     "Conference on Neural Information Processing Systems (NeurIPS)";
   expect(dataTextList[0]).toBe(targetText);
-}, 100000);
+});
 
-test("Rating Paper", async () => {
-  const screenshot = require("screenshot-desktop");
-  await screenshot({ filename: "./rating.jpg" });
+testAndScreenshot("Rating Paper", "rating", async () => {
   const dataview = page.locator("#list-data-view").first();
   const paperItem = dataview.locator("div").first();
   await paperItem.click({ force: true });
@@ -123,9 +153,9 @@ test("Rating Paper", async () => {
     "Conference on Neural Information Processing Systems (NeurIPS)\n" +
     "|";
   expect(dataTextList[0]).toBe(targetText);
-}, 100000);
+});
 
-test("Edit Paper", async () => {
+testAndScreenshot("Edit Paper", "edit", async () => {
   const dataview = page.locator("#list-data-view").first();
   const paperItem = dataview.locator("div").first();
   await paperItem.click({ force: true });
@@ -148,9 +178,9 @@ test("Edit Paper", async () => {
     "arxiv\n" +
     "|";
   expect(dataTextList[0]).toBe(targetText);
-}, 100000);
+});
 
-test("Scrape Paper", async () => {
+testAndScreenshot("Scrape Paper", "scrape", async () => {
   const dataview = page.locator("#list-data-view").first();
   const paperItem = dataview.locator("div").first();
   await paperItem.click({ force: true });
@@ -167,9 +197,9 @@ test("Scrape Paper", async () => {
     "Conference on Neural Information Processing Systems (NeurIPS)\n" +
     "|";
   expect(dataTextList[0]).toBe(targetText);
-}, 100000);
+});
 
-test("Delete Paper", async () => {
+testAndScreenshot("Delete Paper", "delete", async () => {
   const dataview = page.locator("#list-data-view").first();
   const paperItem = dataview.locator("div").first();
   await paperItem.click({ force: true });
@@ -182,9 +212,9 @@ test("Delete Paper", async () => {
 
   const dataviewHeight = (await dataview.boundingBox())?.height;
   expect(dataviewHeight).toBe(0);
-}, 100000);
+});
 
-test("Import Multiple PDFs", async () => {
+testAndScreenshot("Import Multiple PDFs", "drag-multi", async () => {
   const e = await page.locator("#dev-btn-bar").elementHandle();
   await e?.evaluate((e) => {
     e.style.display = "flex";
@@ -196,9 +226,9 @@ test("Import Multiple PDFs", async () => {
   const dataview = page.locator("#list-data-view").first();
   const dataviewHeightBeforeSearch = (await dataview.boundingBox())?.height;
   expect(dataviewHeightBeforeSearch).toBe(128);
-}, 100000);
+});
 
-test("Sort", async () => {
+testAndScreenshot("Sort", "sort", async () => {
   if (await page.locator("#win-more-menu-btn").isVisible()) {
     await page.locator("#win-more-menu-btn").click({ force: true });
   }
@@ -227,9 +257,9 @@ test("Sort", async () => {
     .evaluate((e) => e.style.transform);
 
   expect(asceTranslate !== descTranslate).toBeTruthy();
-}, 100000);
+});
 
-test("Flag Paper and Filter by Flag", async () => {
+testAndScreenshot("Flag Paper and Filter by Flag", "flag", async () => {
   const dataview = page.locator("#list-data-view").first();
 
   const dataviewHeightBeforeFilter = (await dataview.boundingBox())?.height;
@@ -250,9 +280,9 @@ test("Flag Paper and Filter by Flag", async () => {
 
   const dataviewHeightRestore = (await dataview.boundingBox())?.height;
   expect(dataviewHeightRestore).toBe(128);
-}, 100000);
+});
 
-test("Tag Paper and Filter by Tag", async () => {
+testAndScreenshot("Tag Paper and Filter by Tag", "tag", async () => {
   const dataview = page.locator("#list-data-view").first();
   const paperItem = dataview.locator("div").first();
   await paperItem.click({ force: true });
@@ -279,17 +309,17 @@ test("Tag Paper and Filter by Tag", async () => {
 
   const dataviewHeightRestore = (await dataview.boundingBox())?.height;
   expect(dataviewHeightRestore).toBe(128);
-}, 100000);
+});
 
-test("General Search", async () => {
+testAndScreenshot("General Search", "general-search", async () => {
   const dataview = page.locator("#list-data-view").first();
   await page.locator("#search-input > input").fill("correlation");
   await page.waitForTimeout(1000);
   const dataviewHeightAfterSearch = (await dataview.boundingBox())?.height;
   expect(dataviewHeightAfterSearch).toBe(64);
-}, 100000);
+});
 
-test("Fulltext Search", async () => {
+testAndScreenshot("Fulltext Search", "fulltext-search", async () => {
   await page.locator("#search-clear-btn").click({ force: true });
   await page.waitForTimeout(1000);
 
@@ -303,9 +333,9 @@ test("Fulltext Search", async () => {
   await page.waitForTimeout(1000);
   const dataviewHeightAfterSearch = (await dataview.boundingBox())?.height;
   expect(dataviewHeightAfterSearch).toBe(64);
-}, 100000);
+});
 
-test("Advanced Search", async () => {
+testAndScreenshot("Advanced Search", "advanced-search", async () => {
   await page.locator("#search-clear-btn").click({ force: true });
   await page.waitForTimeout(1000);
 
@@ -323,9 +353,9 @@ test("Advanced Search", async () => {
   await page.waitForTimeout(1000);
   const dataviewHeightAfterSearch = (await dataview.boundingBox())?.height;
   expect(dataviewHeightAfterSearch).toBe(64);
-}, 100000);
+});
 
-test("List Table View", async () => {
+testAndScreenshot("List Table View", "list-table-view", async () => {
   if (await page.locator("#win-more-menu-btn").isVisible()) {
     await page.locator("#win-more-menu-btn").click({ force: true });
   }
@@ -343,4 +373,4 @@ test("List Table View", async () => {
   await paperItem.click({ force: true });
 
   await page.waitForSelector("#table-reader-data-view", { state: "visible" });
-}, 100000);
+});

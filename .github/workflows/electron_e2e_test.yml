@@ -99,11 +99,6 @@ jobs:
           sudo apt-get install -y x11-xserver-utils
           sudo apt-get install -y libsecret-1-dev
           sudo apt-get install -y gnome-keyring
-          export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; sleep 3;
-          export NO_AT_BRIDGE=1;
-          dbus-launch --sh-syntax
-          echo -n "" | /usr/bin/gnome-keyring-daemon --login
-          /usr/bin/gnome-keyring-daemon --components=secrets --start
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
@@ -130,7 +125,7 @@ jobs:
           rm -rf ~/.config/paperlib
 
       - name: "End-to-End Testing"
-        run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" -- npm run test:e2e-dev
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" -- export NO_AT_BRIDGE=1 && dbus-launch --sh-syntax && echo -n "" | /usr/bin/gnome-keyring-daemon --login && /usr/bin/gnome-keyring-daemon --components=secrets --start && npm run test:e2e-dev
 
       - name: "Print Log"
         if: always()

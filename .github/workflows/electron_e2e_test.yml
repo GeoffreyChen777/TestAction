@@ -52,7 +52,7 @@ jobs:
         run: npm run test:e2e-dev
 
       - name: "Print Log"
-        run: cat %USERPROFILE%\AppData\Roaming\paperlib\logs\renderer.log
+        run: cat 'C:\Users\runneradmin\AppData\Roaming\paperlib\logs\renderer.log'
 
       - name: "Zip screenshots"
         if: always()

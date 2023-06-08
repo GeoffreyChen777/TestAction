@@ -116,6 +116,10 @@ jobs:
           sudo apt-get install -y imagemagick
           sudo apt-get install -y x11-xserver-utils
           sudo apt-get install -y libsecret-1-dev
+          sudo apt-get install -y gnome-keyring
+          echo -n "" | /usr/bin/gnome-keyring-daemon --login
+          /usr/bin/gnome-keyring-daemon --components=secrets --start
+          /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');"
           npm install screenshot-desktop
           
       - name: "Cleanup Env"

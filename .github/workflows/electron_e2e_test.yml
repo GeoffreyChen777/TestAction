@@ -112,8 +112,9 @@ jobs:
           node -v
           npm install --force
           npx playwright install --with-deps
+          sudo apt-get update
           sudo apt-get install -y imagemagick
-          sudo apt install -y libxrandr-dev
+          sudo apt-get install -y x11-xserver-utils
           npm install screenshot-desktop
           
       - name: "Cleanup Env"

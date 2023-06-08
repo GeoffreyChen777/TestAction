@@ -1,378 +1,122 @@
-/// <reference lib="dom"/>
-import { ElectronApplication, Page, _electron as electron } from "playwright";
-import { afterAll, beforeAll, expect, test } from "vitest";
-
-let electronApp: ElectronApplication;
-let page: Page;
-
-function testAndScreenshot(
-  name: string,
-  screenshotName: string,
-  callback: () => Promise<void>
-) {
-  test(
-    name,
-    async () => {
-      const screenshot = require("screenshot-desktop");
-      await screenshot({
-        filename: `./screenshots/${screenshotName}-before.jpg`,
-      });
-
-      try {
-        await callback();
-      } finally {
-        await screenshot({
-          filename: `./screenshots/${screenshotName}-after.jpg`,
-        });
-      }
-    },
-    100000
-  );
-}
-
-beforeAll(async () => {
-  process.env.NODE_ENV = "vitest";
-  electronApp = await electron.launch({ args: ["."] });
-  page = await electronApp.firstWindow();
-
-  const fs = require("fs");
-  if (!fs.existsSync("./screenshots")) {
-    fs.mkdirSync("./screenshots");
-  }
-
-  const screenshot = require("screenshot-desktop");
-  await screenshot({ filename: "./screenshots/launch.jpg" });
-}, 200000);
-
-afterAll(async () => {
-  await electronApp.close();
-}, 200000);
-
-test("Main Window State", async () => {
-  const windowState: {
-    isVisible: boolean;
-    isDevToolsOpened: boolean;
-    isCrashed: boolean;
-  } = await electronApp.evaluate(({ BrowserWindow }) => {
-    const mainWindow = BrowserWindow.getAllWindows()[0];
-
-    const getState = () => ({
-      isVisible: mainWindow.isVisible(),
-      isDevToolsOpened: mainWindow.webContents.isDevToolsOpened(),
-      isCrashed: mainWindow.webContents.isCrashed(),
-    });
-
-    return new Promise((resolve) => {
-      if (mainWindow.isVisible()) {
-        resolve(getState());
-      } else
-        mainWindow.once("ready-to-show", () =>
-          setTimeout(() => resolve(getState()), 0)
-        );
-    });
-  });
-
-  expect(windowState.isCrashed, "The app has crashed").toBeFalsy();
-  expect(windowState.isVisible, "The main window was not visible").toBeTruthy();
-}, 100000);
-
-testAndScreenshot("Loading Removed in 10s", "loading", async () => {
-  await page.waitForSelector("#app-loading-wrap", { state: "hidden" });
-});
-
-testAndScreenshot("Try to Close Whats New", "whatsnew", async () => {
-  if (await page.isVisible("#whats-new-view")) {
-    await page.locator("#whats-new-close-btn").click({ force: true });
-    await page.waitForSelector("#whats-new-view", { state: "detached" });
-  }
-});
-
-testAndScreenshot("Presetting", "presetting", async () => {
-  await page.waitForSelector("#presetting-lang-view", { state: "visible" });
-  await page.waitForSelector("#presetting-lang-continue-btn", {
-    state: "visible",
-  });
-  await page.locator("#presetting-lang-continue-btn").click({ force: true });
-  await page.waitForSelector("#presetting-lang-view", { state: "detached" });
-
-  await page.waitForSelector("#presetting-db-view", { state: "visible" });
-  await page.waitForSelector("#presetting-db-continue-btn", {
-    state: "visible",
-  });
-  await page.locator("#presetting-db-continue-btn").click({ force: true });
-  await page.waitForSelector("#presetting-db-view", { state: "detached" });
-
-  await page.waitForSelector("#presetting-scraper-view", { state: "visible" });
-  await page.waitForSelector("#presetting-scrapers-preset-select", {
-    state: "visible",
-  });
-  const scrapersSelect = page.locator("#presetting-scrapers-preset-select");
-  await scrapersSelect.selectOption({ label: "Computer Science" });
-  await page.locator("#presetting-scraper-continue-btn").click({ force: true });
-  await page.waitForSelector("#presetting-scraper-view", { state: "detached" });
-});
-
-testAndScreenshot("Maximize Window", "maximize", async () => {
-  await page.locator("#window-maximize-btn").click({ force: true });
-  await page.waitForTimeout(1000);
-});
-
-testAndScreenshot("Drag PDF to Import", "draf", async () => {
-  const e = await page.locator("#dev-btn-bar").elementHandle();
-  await e?.evaluate((e) => {
-    e.style.display = "flex";
-  });
-
-  await page.locator("#dev-add-test-data-btn").click({ force: true });
-  await page.waitForTimeout(4000);
-
-  const dataview = page.locator("#list-data-view").first();
-  const dataTextList = await dataview.allInnerTexts();
-
-  expect(dataTextList.length).toBe(1);
-  const targetText =
-    "Balanced Meta-Softmax for Long-Tailed Visual Recognition.\n" +
-    "Jiawei Ren, Cunjun Yu, Shunan Sheng, Xiao Ma, Haiyu Zhao, Shuai Yi, Hongsheng Li\n" +
-    "2020\n" +
-    "|\n" +
-    "Conference on Neural Information Processing Systems (NeurIPS)";
-  expect(dataTextList[0]).toBe(targetText);
-});
-
-testAndScreenshot("Rating Paper", "rating", async () => {
-  const dataview = page.locator("#list-data-view").first();
-  const paperItem = dataview.locator("div").first();
-  await paperItem.click({ force: true });
-
-  await page.locator("#rating-3-btn").click({ force: true });
-
-  const dataTextList = await dataview.allInnerTexts();
-  const targetText =
-    "Balanced Meta-Softmax for Long-Tailed Visual Recognition.\n" +
-    "Jiawei Ren, Cunjun Yu, Shunan Sheng, Xiao Ma, Haiyu Zhao, Shuai Yi, Hongsheng Li\n" +
-    "2020\n" +
-    "|\n" +
-    "Conference on Neural Information Processing Systems (NeurIPS)\n" +
-    "|";
-  expect(dataTextList[0]).toBe(targetText);
-});
-
-testAndScreenshot("Edit Paper", "edit", async () => {
-  const dataview = page.locator("#list-data-view").first();
-  const paperItem = dataview.locator("div").first();
-  await paperItem.click({ force: true });
-
-  await page.locator("#edit-selected-btn").click({ force: true });
-  await page.waitForSelector("#paper-edit-view", { state: "visible" });
-
-  await page.locator("#paper-edit-view-author-input > input").fill("abc");
-  await page
-    .locator("#paper-edit-view-publication-input > input")
-    .fill("arxiv");
-  await page.locator("#paper-edit-view-save-btn").click({ force: true });
-
-  const dataTextList = await dataview.allInnerTexts();
-  const targetText =
-    "Balanced Meta-Softmax for Long-Tailed Visual Recognition.\n" +
-    "abc\n" +
-    "2020\n" +
-    "|\n" +
-    "arxiv\n" +
-    "|";
-  expect(dataTextList[0]).toBe(targetText);
-});
-
-testAndScreenshot("Scrape Paper", "scrape", async () => {
-  const dataview = page.locator("#list-data-view").first();
-  const paperItem = dataview.locator("div").first();
-  await paperItem.click({ force: true });
-
-  await page.locator("#scrape-selected-btn").click({ force: true });
-  await page.waitForTimeout(5000);
-
-  const dataTextList = await dataview.allInnerTexts();
-  const targetText =
-    "Balanced Meta-Softmax for Long-Tailed Visual Recognition.\n" +
-    "Jiawei Ren, Cunjun Yu, Shunan Sheng, Xiao Ma, Haiyu Zhao, Shuai Yi, Hongsheng Li\n" +
-    "2020\n" +
-    "|\n" +
-    "Conference on Neural Information Processing Systems (NeurIPS)\n" +
-    "|";
-  expect(dataTextList[0]).toBe(targetText);
-});
-
-testAndScreenshot("Delete Paper", "delete", async () => {
-  const dataview = page.locator("#list-data-view").first();
-  const paperItem = dataview.locator("div").first();
-  await paperItem.click({ force: true });
-  await page.waitForTimeout(1000);
-
-  await page.locator("#delete-selected-btn").click({ force: true });
-  await page.waitForTimeout(1000);
-  await page.locator("#delete-confirm-btn").click({ force: true });
-  await page.waitForTimeout(1000);
-
-  const dataviewHeight = (await dataview.boundingBox())?.height;
-  expect(dataviewHeight).toBe(0);
-});
-
-testAndScreenshot("Import Multiple PDFs", "drag-multi", async () => {
-  const e = await page.locator("#dev-btn-bar").elementHandle();
-  await e?.evaluate((e) => {
-    e.style.display = "flex";
-  });
-
-  await page.locator("#dev-add-two-test-data-btn").click({ force: true });
-  await page.waitForTimeout(4000);
-
-  const dataview = page.locator("#list-data-view").first();
-  const dataviewHeightBeforeSearch = (await dataview.boundingBox())?.height;
-  expect(dataviewHeightBeforeSearch).toBe(128);
-});
-
-testAndScreenshot("Sort", "sort", async () => {
-  if (await page.locator("#win-more-menu-btn").isVisible()) {
-    await page.locator("#win-more-menu-btn").click({ force: true });
-  }
-  await page.locator("#list-view-btn").click({ force: true });
-  await page.locator("#sort-menu-btn").click({ force: true });
-  await page.locator("#sort-asce-btn").click({ force: true });
-  await page.waitForTimeout(1000);
-
-  const dataview = page.locator("#list-data-view").first();
-  const asceTranslate = await dataview
-    .locator("div")
-    .first()
-    .locator("div")
-    .first()
-    .evaluate((e) => e.style.transform);
-
-  await page.locator("#sort-menu-btn").click({ force: true });
-  await page.locator("#sort-desc-btn").click({ force: true });
-  await page.waitForTimeout(1000);
-
-  const descTranslate = await dataview
-    .locator("div")
-    .first()
-    .locator("div")
-    .first()
-    .evaluate((e) => e.style.transform);
-
-  expect(asceTranslate !== descTranslate).toBeTruthy();
-});
-
-testAndScreenshot("Flag Paper and Filter by Flag", "flag", async () => {
-  const dataview = page.locator("#list-data-view").first();
-
-  const dataviewHeightBeforeFilter = (await dataview.boundingBox())?.height;
-  expect(dataviewHeightBeforeFilter).toBe(128);
-
-  const paperItem = dataview.locator("div").first();
-  await paperItem.click({ force: true });
-
-  await page.locator("#flag-selected-btn").click({ force: true });
-  await page.locator("#sidebar-flag-section").click({ force: true });
-  await page.waitForTimeout(1000);
-
-  const dataviewHeightAfterFilter = (await dataview.boundingBox())?.height;
-  expect(dataviewHeightAfterFilter).toBe(64);
-
-  await page.locator("#sidebar-library-section").click({ force: true });
-  await page.waitForTimeout(1000);
-
-  const dataviewHeightRestore = (await dataview.boundingBox())?.height;
-  expect(dataviewHeightRestore).toBe(128);
-});
-
-testAndScreenshot("Tag Paper and Filter by Tag", "tag", async () => {
-  const dataview = page.locator("#list-data-view").first();
-  const paperItem = dataview.locator("div").first();
-  await paperItem.click({ force: true });
-
-  await page.locator("#edit-selected-btn").click({ force: true });
-  await page.waitForSelector("#paper-edit-view", { state: "visible" });
-
-  await page.locator("#paper-edit-view-tags-input input").fill("test1");
-  await page.keyboard.press("Enter");
-  await page.locator("#paper-edit-view-save-btn").click({ force: true });
-  await page.waitForTimeout(1000);
-
-  const tagInDetail = await page.locator("#detail-tag-section > div").count();
-  expect(tagInDetail).toBe(2);
-
-  await page.locator(".sidebar-tag-item").first().click({ force: true });
-  await page.waitForTimeout(1000);
-
-  const dataviewHeightAfterFilter = (await dataview.boundingBox())?.height;
-  expect(dataviewHeightAfterFilter).toBe(64);
-
-  await page.locator("#sidebar-library-section").click({ force: true });
-  await page.waitForTimeout(1000);
-
-  const dataviewHeightRestore = (await dataview.boundingBox())?.height;
-  expect(dataviewHeightRestore).toBe(128);
-});
-
-testAndScreenshot("General Search", "general-search", async () => {
-  const dataview = page.locator("#list-data-view").first();
-  await page.locator("#search-input > input").fill("correlation");
-  await page.waitForTimeout(1000);
-  const dataviewHeightAfterSearch = (await dataview.boundingBox())?.height;
-  expect(dataviewHeightAfterSearch).toBe(64);
-});
-
-testAndScreenshot("Fulltext Search", "fulltext-search", async () => {
-  await page.locator("#search-clear-btn").click({ force: true });
-  await page.waitForTimeout(1000);
-
-  const dataview = page.locator("#list-data-view").first();
-  const dataviewHeightBeforeSearch = (await dataview.boundingBox())?.height;
-  expect(dataviewHeightBeforeSearch).toBe(128);
-
-  await page.locator("#search-input > button").click({ force: true });
-  await page.waitForTimeout(1000);
-  await page.locator("#search-input > input").fill("CCA");
-  await page.waitForTimeout(1000);
-  const dataviewHeightAfterSearch = (await dataview.boundingBox())?.height;
-  expect(dataviewHeightAfterSearch).toBe(64);
-});
-
-testAndScreenshot("Advanced Search", "advanced-search", async () => {
-  await page.locator("#search-clear-btn").click({ force: true });
-  await page.waitForTimeout(1000);
-
-  const dataview = page.locator("#list-data-view").first();
-  const dataviewHeightBeforeSearch = (await dataview.boundingBox())?.height;
-  expect(dataviewHeightBeforeSearch).toBe(128);
-
-  await page.locator("#search-input > button").click({ force: true });
-  await page.locator("#search-input > input").focus();
-  await page.waitForTimeout(1000);
-  await page.locator("#search-input > input").fill(`pubTime == '2022'`);
-  await page.waitForTimeout(1000);
-  await page.keyboard.press("Enter");
-  await page.keyboard.press("Enter");
-  await page.waitForTimeout(1000);
-  const dataviewHeightAfterSearch = (await dataview.boundingBox())?.height;
-  expect(dataviewHeightAfterSearch).toBe(64);
-});
-
-testAndScreenshot("List Table View", "list-table-view", async () => {
-  if (await page.locator("#win-more-menu-btn").isVisible()) {
-    await page.locator("#win-more-menu-btn").click({ force: true });
-  }
-  await page.locator("#table-view-btn").click({ force: true });
-  await page.waitForTimeout(1000);
-  await page.waitForSelector("#table-data-view", { state: "visible" });
-
-  if (await page.locator("#win-more-menu-btn").isVisible()) {
-    await page.locator("#win-more-menu-btn").click({ force: true });
-  }
-  await page.locator("#table-reader-view-btn").click({ force: true });
-  await page.waitForTimeout(1000);
-  const dataview = page.locator("#table-data-view > .table-body").first();
-  const paperItem = dataview.locator("div").nth(1);
-  await paperItem.click({ force: true });
-
-  await page.waitForSelector("#table-reader-data-view", { state: "visible" });
-});
+name: End-to-End Testing
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+    branches:
+      - master
+
+jobs:
+  e2e_test_win:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    strategy:
+      matrix:
+        node-versions: ["16.17.1"]
+
+    steps:
+      - name: "Checkout Project"
+        uses: actions/checkout@v2
+
+      - name: Set env
+        run: |
+          cp ./build_configs/electron-builder.win.dev.json5 ./electron-builder.json5
+          rm -rf ./app/utils/crypto
+      - name: Setup NodeJS Environment ${{ matrix.node-versions }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-versions }}
+
+      - name: 'Clone Private Repository'
+        uses: actions/checkout@v2
+        with:
+          repository: Future-Scholars/paperlib-crypto
+          token: ${{ secrets.CRYPTO_REPO_KEY }}
+          path: ./app/utils/crypto
+
+      - name: "Install Node Module"
+        run: |
+          node -v
+          npm install --force
+          npx playwright install --with-deps
+          npm install screenshot-desktop
+      - name: "Cleanup Env"
+        run: |
+          rm -rf C:\Users\runneradmin\Documents\paperlib
+          rm -rf C:\Users\runneradmin\AppData\Local\paperlib
+      - name: "End-to-End Testing"
+        run: npm run test:e2e-dev
+
+
+      - name: "Zip screenshots"
+        if: always()
+        uses: montudor/action-zip@v1
+        with:
+          args: zip -qq -r screenshots.zip screenshots
+
+
+      - name: Install Oracle Cloud CLI
+        if: always()
+        run: |
+          pip install cffi
+          curl https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.ps1 --output install.ps1
+          powershell ./install.ps1 -AcceptAllDefaults
+          mkdir ~/.oci
+          echo ${{ secrets.OCI_CFG_DATA }} > config.secret
+          base64 --decode config.secret > config
+          mv config ~/.oci
+          echo ${{ secrets.OCI_KEY_DATA }} > oraclekey.cer.secret
+          base64 --decode oraclekey.cer.secret > oraclekey.cer
+          mv oraclekey.cer ~/.oci
+      - name: Upload to Oracle Storage
+        if: always()
+        run: |
+          ls ./
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './loading.jpg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/loading.jpg'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './presetting.jpg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/presetting.jpg'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './rating.jpg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/rating.jpg'
+#   e2e_test_linux:
+#     runs-on: ubuntu-latest
+
+#     strategy:
+#       matrix:
+#         node-versions: ["16.17.1"]
+
+#     steps:
+#       - name: "Checkout Project"
+#         uses: actions/checkout@v2
+
+#       - name: Set env
+#         run: |
+#           cp ./build_configs/electron-builder.linux.dev.json5 ./electron-builder.json5
+#           rm -rf ./app/utils/crypto
+
+#       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
+#         uses: actions/setup-node@v2
+#         with:
+#           node-version: ${{ matrix.node-versions }}
+
+#       - name: 'Clone Private Repository'
+#         uses: actions/checkout@v2
+#         with:
+#           repository: Future-Scholars/paperlib-crypto
+#           token: ${{ secrets.CRYPTO_REPO_KEY }}
+#           path: ./app/utils/crypto
+
+#       - name: "Install Node Module"
+#         run: |
+#           node -v
+#           npm install --force
+#           npx playwright install --with-deps
+
+#       - name: "Cleanup Env"
+#         run: |
+#           rm -rf ~/Documents/paperlib
+#           rm -rf ~/.config/paperlib
+
+#       - name: "End-to-End Testing"
+#         run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run test:e2e-dev

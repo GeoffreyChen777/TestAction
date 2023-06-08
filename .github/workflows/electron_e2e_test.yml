@@ -99,6 +99,9 @@ jobs:
           sudo apt-get install -y x11-xserver-utils
           sudo apt-get install -y libsecret-1-dev
           sudo apt-get install -y gnome-keyring
+          export DISPLAY=:99.0; sh -e sudo systemctl start xvbf; sleep 3;
+          export NO_AT_BRIDGE=1
+          dbus-launch --sh-syntax
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2

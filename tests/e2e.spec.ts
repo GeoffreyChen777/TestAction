@@ -32,21 +32,23 @@ function testAndScreenshot(
 
 beforeAll(async () => {
   process.env.NODE_ENV = "vitest";
-  electronApp = await electron.launch({ args: ["."] });
-  page = await electronApp.firstWindow();
-
   const fs = require("fs");
   if (!fs.existsSync("./screenshots")) {
     fs.mkdirSync("./screenshots");
   }
-
   const screenshot = require("screenshot-desktop");
-  await screenshot({ filename: "./screenshots/launch.jpg" });
-}, 200000);
+
+  await screenshot({ filename: "./screenshots/launch-before.jpg" });
+
+  electronApp = await electron.launch({ args: ["."] });
+  page = await electronApp.firstWindow();
+
+  await screenshot({ filename: "./screenshots/launch-after.jpg" });
+}, 30000);
 
 afterAll(async () => {
   await electronApp.close();
-}, 200000);
+}, 30000);
 
 test("Main Window State", async () => {
   const windowState: {
@@ -74,7 +76,7 @@ test("Main Window State", async () => {
 
   expect(windowState.isCrashed, "The app has crashed").toBeFalsy();
   expect(windowState.isVisible, "The main window was not visible").toBeTruthy();
-}, 100000);
+}, 10000);
 
 testAndScreenshot("Loading Removed", "loading", async () => {
   await page.waitForSelector("#app-loading-wrap", { state: "hidden" });
@@ -89,27 +91,17 @@ testAndScreenshot("Try to Close Whats New", "whatsnew", async () => {
 
 testAndScreenshot("Presetting", "presetting", async () => {
   await page.waitForSelector("#presetting-lang-view", { state: "visible" });
-  (
-    await page.waitForSelector("#presetting-lang-continue-btn", {
-      state: "visible",
-    })
-  ).click();
+  await page.locator("#presetting-lang-continue-btn").click();
   await page.waitForSelector("#presetting-lang-view", { state: "hidden" });
 
   await page.waitForSelector("#presetting-db-view", { state: "visible" });
-  (
-    await page.waitForSelector("#presetting-db-continue-btn", {
-      state: "visible",
-    })
-  ).click();
+  await page.locator("#presetting-db-continue-btn").click();
   await page.waitForSelector("#presetting-db-view", { state: "hidden" });
 
   await page.waitForSelector("#presetting-scraper-view", { state: "visible" });
-  (
-    await page.waitForSelector("#presetting-scrapers-preset-select", {
-      state: "visible",
-    })
-  ).selectOption({ label: "Computer Science" });
+  await page
+    .locator("#presetting-scrapers-preset-select")
+    .selectOption({ label: "Computer Science" });
   await page.locator("#presetting-scraper-continue-btn").click();
   await page.waitForSelector("#presetting-scraper-view", { state: "hidden" });
 });
@@ -224,10 +216,10 @@ testAndScreenshot("Sort", "sort", async () => {
   if (await page.locator("#win-more-menu-btn").isVisible()) {
     await page.locator("#win-more-menu-btn").click();
   }
-  (await page.waitForSelector("#list-view-btn", { state: "visible" })).click();
+  await page.locator("#list-view-btn").click();
 
   await page.locator("#sort-menu-btn").click();
-  (await page.waitForSelector("#sort-asce-btn", { state: "visible" })).click();
+  await page.locator("#sort-asce-btn").click();
   await page.waitForTimeout(1000);
 
   const dataview = page.locator("#list-data-view").first();
@@ -239,7 +231,7 @@ testAndScreenshot("Sort", "sort", async () => {
     .evaluate((e) => e.style.transform);
 
   await page.locator("#sort-menu-btn").click();
-  (await page.waitForSelector("#sort-desc-btn", { state: "visible" })).click();
+  await page.locator("#sort-desc-btn").click();
   await page.waitForTimeout(1000);
 
   const descTranslate = await dataview
@@ -359,14 +351,14 @@ testAndScreenshot("List Table View", "list-table-view", async () => {
   if (await page.locator("#win-more-menu-btn").isVisible()) {
     await page.locator("#win-more-menu-btn").click();
   }
-  (await page.waitForSelector("#table-view-btn")).click();
+  await page.locator("#table-view-btn").click();
   await page.waitForTimeout(1000);
   await page.waitForSelector("#table-data-view", { state: "visible" });
 
   if (await page.locator("#win-more-menu-btn").isVisible()) {
     await page.locator("#win-more-menu-btn").click();
   }
-  (await page.waitForSelector("#table-reader-view-btn")).click();
+  await page.locator("#table-reader-view-btn").click();
   await page.waitForTimeout(1000);
   const dataview = page.locator("#table-data-view > .table-body").first();
   const paperItem = dataview.locator("div").nth(1);

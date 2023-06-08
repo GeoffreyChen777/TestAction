@@ -54,9 +54,10 @@ jobs:
 
       - name: "Zip screenshots"
         if: always()
-        uses: montudor/action-zip@v1
+        uses: vimtor/action-zip@v1
         with:
-          args: zip -qq -r screenshots.zip screenshots
+          files: screenshots/
+          dest: screenshots.zip
 
 
       - name: Install Oracle Cloud CLI

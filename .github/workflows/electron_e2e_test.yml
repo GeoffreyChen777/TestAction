@@ -10,6 +10,10 @@ jobs:
   e2e_test_win:
     runs-on: windows-latest
 
+    defaults:
+      run:
+        shell: bash
+
     strategy:
       matrix:
         node-versions: ["16.17.1"]
@@ -49,17 +53,6 @@ jobs:
 
       - name: "End-to-End Testing"
         run: npm run test:e2e-dev
-
-      - name: "Update Screenshots"
-        if: always()
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            ./loading.jpg
-            ./presetting.jpg
-            ./rating.jpg
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Oracle Cloud CLI
         if: always()

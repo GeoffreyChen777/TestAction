@@ -101,7 +101,6 @@ jobs:
           sudo apt-get install -y gnome-keyring
           echo -n "" | /usr/bin/gnome-keyring-daemon --login
           /usr/bin/gnome-keyring-daemon --components=secrets --start
-          /usr/bin/python -c "import gnomekeyring;gnomekeyring.create_sync('login', '');"
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2

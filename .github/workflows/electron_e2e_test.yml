@@ -77,9 +77,8 @@ jobs:
         if: always()
         run: |
           ls ./
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './loading.jpg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/loading.jpg'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './presetting.jpg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/presetting.jpg'
-          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './rating.jpg' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/rating.jpg'
+          oci os object put --bucket-name ${{ secrets.OCI_OS_BUCKET }} --file './screenshots.zip' --namespace ${{ secrets.OCI_OS_NAMESPACE }} --force --name 'screenshots/screenshots.zip'
+          
 #   e2e_test_linux:
 #     runs-on: ubuntu-latest
 

@@ -25,7 +25,7 @@ jobs:
       - name: Set env
         run: |
           cp ./build_configs/electron-builder.win.dev.json5 ./electron-builder.json5
-          if (Test-Path ./app/utils/crypto) {rm ./app/utils/crypto -r -force}
+          rm -rf ./app/utils/crypto
 
       - name: Setup NodeJS Environment ${{ matrix.node-versions }}
         uses: actions/setup-node@v2
@@ -48,8 +48,8 @@ jobs:
 
       - name: "Cleanup Env"
         run: |
-          if (Test-Path C:\Users\runneradmin\Documents\paperlib) {rm C:\Users\runneradmin\Documents\paperlib -r -force}
-          if (Test-Path C:\Users\runneradmin\AppData\Local\paperlib) {rm C:\Users\runneradmin\AppData\Local\paperlib -r -force}
+          rm -rf C:\Users\runneradmin\Documents\paperlib
+          rm -rf C:\Users\runneradmin\AppData\Local\paperlib
 
       - name: "End-to-End Testing"
         run: npm run test:e2e-dev

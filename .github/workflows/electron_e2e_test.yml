@@ -99,6 +99,8 @@ jobs:
           sudo apt-get install -y x11-xserver-utils
           sudo apt-get install -y libsecret-1-dev
           sudo apt-get install -y gnome-keyring
+          export NO_AT_BRIDGE=1;
+          dbus-launch --sh-syntax
           echo -n "" | /usr/bin/gnome-keyring-daemon --login
           /usr/bin/gnome-keyring-daemon --components=secrets --start
 
